@@ -3,64 +3,75 @@ package com.pascal.prettymd;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Stack;
 
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 
 public class FormatPretty {
 	
-	private static final String FILENAME = "test.md";
+	// TODO: Polyglot
 	
-	static int maxLineWidth = 200;
-	static String currentMode = "";
+	private static final String FILENAME = "test.md";
 
 	public static void main(String[] args) throws IOException {
-		
 		String rawMarkdownText = "";
-		
-		/*if(args.length == 0) {
-			System.out.println("please provide markdown file as argument");
+		if(args.length == 0) {
+			System.out.println("INFO: you can provide a markdown file as argument input...\n");
 			rawMarkdownText = readFromFile(FILENAME);
 		} else {
 			rawMarkdownText = readFromFile(args[0]);
-		}*/
-		
-		rawMarkdownText = readFromFile(FILENAME);
-		
-		Parser parser = Parser.builder().build();		
-		//Node node = parser.parse("Example\n=======\n\nSome more text");
+		}
+		Parser parser = Parser.builder().build();
 		Node node = parser.parse(rawMarkdownText);
-		WordCountVisitor visitor = new WordCountVisitor();		
+		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor();
 		node.accept(visitor);
-		
+		String result = visitor.getResult();
+		System.out.print(result);
 	}
 	
 	public static String readFromFile(String fileName) throws IOException {
-		
 		FileReader fileReader = new FileReader(fileName);
 		BufferedReader bufferedReader = new BufferedReader(fileReader);
 		StringBuilder sb = new StringBuilder();
 		String currentLine;
-		
 		while ((currentLine = bufferedReader.readLine()) != null) {
 			sb.append(currentLine + "\n");
 		}
-		
 		bufferedReader.close();
 		fileReader.close();
-		
 		return sb.toString();
-		
+	}
+	
+	public static String testPrettyPrint(String testMarkdown) {
+		Parser parser = Parser.builder().build();		
+		Node node = parser.parse(testMarkdown);
+		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor();
+		node.accept(visitor);
+		String result = visitor.getResult();
+		return result;
 	}
 
 }
 
-class WordCountVisitor extends AbstractVisitor {
+class PrettyPrinterVisitor extends AbstractVisitor {
 	
+	private StringBuilder result = new StringBuilder();
+	// TODO: use linewidth
+	int maxLineWidth = 200;
     int lineBreaksAfterTitle = 2;
     int currentIndentation = 0;
-    String currentMode = ""; // TODO: use a stack, otherwise nested things don't work
-    char bulletSymbol = '*';
+    Stack<String> currentMode = new Stack<String>();
+    char bulletSymbol = '-';
+    char orderedListDelimiter = '.';
+    char codeBlockSymbol = '~';
+    int currentNumberInList = 1;
+    boolean firstBlockQuote = true;
+    boolean firstListItem = true;
+    
+    public String getResult() {
+    	return result.toString();
+    }
     
     @Override
     public void visit(Document document) {
@@ -70,87 +81,111 @@ class WordCountVisitor extends AbstractVisitor {
     @Override
     public void visit(Heading heading) {
     	for(int i=0; i<heading.getLevel(); i++) {
-    		System.out.print("#");
+    		result.append("#");
     	}
-    	System.out.print(" ");
+    	result.append(" ");
     	visitChildren(heading);
+    	result.append("\n");
+    	result.append("\n");
     }
     
     @Override
     public void visit(Text text) {
     	
     	for(int i=0; i<currentIndentation; i++) {
-    		System.out.print(" ");
+    		result.append(" ");
     	}
     	
-    	if(currentMode.equals("bulletList")) {
-    		System.out.print(bulletSymbol + " ");
-    	} else if (currentMode.equals("orderedList")) {
-    		// TODO: print right number
-    		System.out.print("1. ");;
-    	} else if (currentMode.equals("blockQuote")) {
-    		System.out.print("> ");
+    	if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) result.append("\n");
+    	
+    	if(!currentMode.empty() && currentMode.peek().equals("bulletList")) {
+    		result.append(bulletSymbol + " ");
+    	} else if (!currentMode.empty() && currentMode.peek().equals("orderedList")) {
+    		result.append(currentNumberInList + "" + orderedListDelimiter + " ");
+    		currentNumberInList++;
+    	} else if (!currentMode.empty() && currentMode.peek().equals("blockQuote")) {
+    		result.append("> ");
+    		firstBlockQuote = false;
     	}
     	
-    	System.out.print(text.getLiteral());
+    	result.append(text.getLiteral());
     	
         visitChildren(text);
     }
     
     @Override
 	public void visit(HardLineBreak hardLineBreak) {
-		// TODO: Print new line, no hard break in file?
+    	result.append("  \n");
     	visitChildren(hardLineBreak);
 	}
     
     @Override
 	public void visit(SoftLineBreak softLineBreak) {
-		// TODO: Print space, break if linewidth > as it should be
-    	System.out.println();
+    	if(currentMode.isEmpty()) {
+    		result.append(" ");
+    	} else if(!currentMode.peek().equals("blockQuote")) {
+    		result.append(" ");
+    	}
     	visitChildren(softLineBreak);
 	}
     
     @Override
 	public void visit(Paragraph paragraph) {
-    	System.out.println();
-    	// TODO: First block quote should not print
-    	if (currentMode.equals("blockQuote")) {
-    		System.out.print("> ");
+    	
+    	if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) {
+    		result.append(">");
     	}
-    	System.out.println();
+    	
     	visitChildren(paragraph);
+    	if(currentMode.isEmpty()) result.append("\n");
+    	result.append("\n");
 	}
     
     @Override
 	public void visit(BulletList bulletList) {
+    	if(!currentMode.isEmpty() && (currentMode.peek().equals("bulletList") || currentMode.peek().equals("orderedList"))) {
+    		result.append("\n");
+    	}
     	currentIndentation += 2;
-    	currentMode = "bulletList";
+    	currentMode.push("bulletList");
+    	firstListItem = true;
     	visitChildren(bulletList);
+    	firstListItem = false;
     	currentIndentation -= 2;
-    	currentMode = "";
+    	currentMode.pop();
+    	result.append("\n");
 	}
     
     @Override
 	public void visit(OrderedList orderedList) {
-    	currentIndentation = 2;
-    	currentMode = "orderedList";
+    	if(!currentMode.isEmpty() && (currentMode.peek().equals("bulletList") || currentMode.peek().equals("orderedList"))) {
+    		result.append("\n");
+    	}
+    	currentIndentation += 2;
+    	currentMode.push("orderedList");
+    	currentNumberInList = orderedList.getStartNumber();
+    	orderedListDelimiter = orderedList.getDelimiter();
+    	firstListItem = true;
     	visitChildren(orderedList);
-    	currentIndentation = 0;
-    	currentMode = "";
+    	firstListItem = false;
+    	currentNumberInList = 1;
+    	currentIndentation -= 2;
+    	currentMode.pop();
+    	result.append("\n");
 	}
     
     @Override
 	public void visit(Emphasis emphasis) {
-    	System.out.print("*");
+    	result.append("*");
     	visitChildren(emphasis);
-    	System.out.print("*");
+    	result.append("*");
 	}
     
     @Override
 	public void visit(StrongEmphasis strongEmphasis) {
-    	System.out.print("**");
+    	result.append("**");
     	visitChildren(strongEmphasis);
-    	System.out.print("**");
+    	result.append("**");
 	}
     
     @Override
@@ -160,89 +195,82 @@ class WordCountVisitor extends AbstractVisitor {
 
     @Override
 	public void visit(Code code) {
-    	System.out.print("`");
-    	System.out.print(code.getLiteral());
+    	result.append("`");
+    	result.append(code.getLiteral());
     	visitChildren(code);
-    	System.out.print("`");
+    	result.append("`");
 	}
     
     @Override
     public void visit(BlockQuote blockQuote) {
-    	currentMode = "blockQuote";
+    	currentMode.push("blockQuote");
+    	firstBlockQuote = true;
     	visitChildren(blockQuote);
-    	currentMode = "";
+    	result.append("\n");
+    	firstBlockQuote = false;
+    	currentMode.pop();
 	}
     
     @Override
 	public void visit(IndentedCodeBlock indentedCodeBlock) {
-    	System.out.println();
-    	System.out.println();
+    	//result.append("\n");
+    	String codeBlockIndent = "    ";
+    	for(int i=0; i<currentIndentation; i++) {
+    		codeBlockIndent += " ";
+    	}
     	StringBuilder codeBlock = new StringBuilder(indentedCodeBlock.getLiteral());
-    	codeBlock.insert(0, "    ");
+    	codeBlock.insert(0, codeBlockIndent);
     	for(int i=0; i<codeBlock.length(); i++) {
     		if(codeBlock.charAt(i) == '\n' && i!=codeBlock.length()-1) {
-    			codeBlock.insert(i+1, "    ");
+    			codeBlock.insert(i+1, codeBlockIndent);
     		}
     	}
-    	System.out.print(codeBlock.toString());
+    	result.append(codeBlock.toString());
     	visitChildren(indentedCodeBlock);
+    	result.append("\n");
 	}
     
     @Override
 	public void visit(FencedCodeBlock fencedCodeBlock) {
-    	System.out.println();
-    	System.out.println();
-    	System.out.print("```");
-    	System.out.print(fencedCodeBlock.getInfo());
-    	System.out.println();
-    	System.out.print(fencedCodeBlock.getLiteral());
+    	//result.append("\n");
+    	codeBlockSymbol = fencedCodeBlock.getFenceChar();
+    	result.append(codeBlockSymbol);
+    	result.append(codeBlockSymbol);
+    	result.append(codeBlockSymbol);
+    	result.append(fencedCodeBlock.getInfo());
+    	result.append("\n");
+    	result.append(fencedCodeBlock.getLiteral());
     	visitChildren(fencedCodeBlock);
-    	System.out.println("```");
+    	result.append(codeBlockSymbol);
+    	result.append(codeBlockSymbol);
+    	result.append(codeBlockSymbol);
+    	result.append("\n");
+    	result.append("\n");
 	}
     
     @Override
 	public void visit(Link link) {
-    	System.out.print("[");
+    	result.append("[");
     	visitChildren(link);
-    	System.out.print("]");
-    	System.out.print("(" + link.getDestination() + ")");
+    	result.append("]");
+    	result.append("(" + link.getDestination() + ")");
 	}
     
 	@Override
 	public void visit(ThematicBreak thematicBreak) {
-		System.out.println("");
 		visitChildren(thematicBreak);
-		System.out.println("");
-		System.out.print("***");
+		result.append("***");
+		result.append("\n");
+		result.append("\n");
 	}
 	
 	@Override
 	public void visit(Image image) {
-		System.out.print("![");
+		result.append("![");
 		visitChildren(image);
-		System.out.print("]");
-		System.out.print("(" + image.getDestination());
-		System.out.print(" \"" + image.getTitle() + "\")");
+		result.append("]");
+		result.append("(" + image.getDestination());
+		result.append(" \"" + image.getTitle() + "\")");
 	}
-	
-	/*@Override
-	public void visit(HtmlInline htmlInline) {
-		// TODO Auto-generated method stub
-	}
-
-    @Override
-	public void visit(HtmlBlock htmlBlock) {
-		// TODO Auto-generated method stub
-	}
-
-    @Override
-	public void visit(CustomBlock customBlock) {
-		// TODO Auto-generated method stub
-	}
-
-    @Override
-	public void visit(CustomNode customNode) {
-		// TODO Auto-generated method stub
-	}*/
     
 }

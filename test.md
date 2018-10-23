@@ -70,8 +70,7 @@ Now a nested list:
 
  2. Boil some water.
 
- 3. Dump everything in the pot and follow
-    this algorithm:
+ 3. Dump everything in the pot and follow this algorithm:
 
         find wooden spoon
         uncover pot
@@ -81,8 +80,6 @@ Now a nested list:
         wait 10 minutes
         goto first step (or shut off burner when done)
 
-    Do not bump wooden spoon or it will fall.
-
 Notice again how text always lines up on 4-space indents (including
 that last line which continues item 3 above).
 
@@ -91,8 +88,6 @@ doc](local-doc.html), and to a [section heading in the current
 doc](#an-h2-header). Here's a footnote [^1].
 
 [^1]: Footnote text goes here.
-
-TODO: TABLE
 
 A horizontal rule follows.
 
