@@ -20,10 +20,20 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.atlassian.commonmark</groupId>
-	    <artifactId>commonmark</artifactId>
-	    <version>0.11.0</version>
+      <groupId>com.atlassian.commonmark</groupId>
+	  <artifactId>commonmark</artifactId>
+	  <version>0.11.0</version>
 	</dependency>
+	<dependency>
+	  <groupId>org.graalvm.truffle</groupId>
+	  <artifactId>truffle-api</artifactId>
+	  <version>1.0.0-rc8</version>
+	</dependency>
+	<dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js</artifactId>
+      <version>1.0.0-rc8</version>
+    </dependency>
   </dependencies>
   
 </project>
