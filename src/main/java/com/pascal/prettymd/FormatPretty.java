@@ -4,30 +4,43 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.proxy.*;
+
 public class FormatPretty {
 	
-	// TODO: Polyglot
-	
-	private static final String FILENAME = "test.md";
+	// INFO: default files are test.md and example.js (as arguments)
 
 	public static void main(String[] args) throws IOException {
+		
 		String rawMarkdownText = "";
+		String javaScript = "";
+		
 		if(args.length == 0) {
-			System.out.println("INFO: you can provide a markdown file as argument input...\n");
-			rawMarkdownText = readFromFile(FILENAME);
-		} else {
+			throw new java.lang.RuntimeException("ERROR: please provide at least a .md file as argument");
+		} else if(args.length == 1){
+			System.out.println("INFO: you can provide a JavaScript file as a second argument...\n");
 			rawMarkdownText = readFromFile(args[0]);
+		} else if(args.length ==2) {
+			rawMarkdownText = readFromFile(args[0]);
+			javaScript = readFromFile(args[1]);
+		} else {
+			throw new java.lang.RuntimeException("ERROR: please provide maximal 2 arguments (.md file and .js file)");
 		}
+		
 		Parser parser = Parser.builder().build();
 		Node node = parser.parse(rawMarkdownText);
-		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor();
+		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor(javaScript);
 		node.accept(visitor);
 		String result = visitor.getResult();
 		System.out.print(result);
+		
 	}
 	
 	public static String readFromFile(String fileName) throws IOException {
@@ -43,10 +56,11 @@ public class FormatPretty {
 		return sb.toString();
 	}
 	
+	// used for testing
 	public static String testPrettyPrint(String testMarkdown) {
 		Parser parser = Parser.builder().build();		
 		Node node = parser.parse(testMarkdown);
-		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor();
+		PrettyPrinterVisitor visitor = new PrettyPrinterVisitor("");
 		node.accept(visitor);
 		String result = visitor.getResult();
 		return result;
@@ -56,18 +70,65 @@ public class FormatPretty {
 
 class PrettyPrinterVisitor extends AbstractVisitor {
 	
+	private String javaScript = "";
+	
 	private StringBuilder result = new StringBuilder();
+	
 	// TODO: use linewidth
-	int maxLineWidth = 200;
-    int lineBreaksAfterTitle = 2;
+	//int maxLineWidth = 200;
+	
+	// variables for keeping track of current status
     int currentIndentation = 0;
     Stack<String> currentMode = new Stack<String>();
-    char bulletSymbol = '-';
-    char orderedListDelimiter = '.';
-    char codeBlockSymbol = '~';
     int currentNumberInList = 1;
     boolean firstBlockQuote = true;
     boolean firstListItem = true;
+    		
+    // default symbols
+    char bulletSymbol = '-';
+    char orderedListDelimiter = '.';
+    char codeBlockSymbol = '~';
+    
+    // custom constructor with javascript
+    public PrettyPrinterVisitor(String javaScript) {
+    	this.javaScript = javaScript;
+    }
+    
+    // passing a string to the javascript function to manipulate it
+    public String passToJavaScript(String type, String text, String options) {
+    	
+    	Context context = Context.create("js");
+    	Timer timer = new Timer(true);
+    	final Value lambda;
+    	final Value v;
+    	
+    	JsonObject jsonObject = new JsonObject(type, text);
+    	jsonObject.type = type;
+    	jsonObject.text = text;
+    	jsonObject.options = options;
+    	
+    	timer.schedule(new TimerTask() {
+    	    @Override
+    	    public void run() {
+    	        context.close(true);
+    	    }
+    	}, 1000);
+    	
+    	
+    	try {
+    	    lambda = context.eval("js", javaScript);
+    	    if(!lambda.canExecute()) return text;
+    	    v = lambda.execute(jsonObject);
+    	    if(!v.isString()) return text;
+    	    assert false;
+    	    return v.asString();
+    	} catch (PolyglotException e) {
+    	    assert e.isCancelled();
+    	    return text;
+    	}
+    	
+    	
+    }
     
     public String getResult() {
     	return result.toString();
@@ -83,8 +144,11 @@ class PrettyPrinterVisitor extends AbstractVisitor {
     	for(int i=0; i<heading.getLevel(); i++) {
     		result.append("#");
     	}
+    	//Text text = (Text) heading.getFirstChild();
     	result.append(" ");
+    	currentMode.push("heading");
     	visitChildren(heading);
+    	currentMode.pop();
     	result.append("\n");
     	result.append("\n");
     }
@@ -92,23 +156,32 @@ class PrettyPrinterVisitor extends AbstractVisitor {
     @Override
     public void visit(Text text) {
     	
-    	for(int i=0; i<currentIndentation; i++) {
-    		result.append(" ");
+    	if(!currentMode.empty() && currentMode.peek().equals("heading")) {
+    		
+    		String modifiedString = passToJavaScript("header", text.getLiteral(), "");
+			result.append(modifiedString);
+    		//result.append(text.getLiteral());
+    		
+    	} else {
+    		
+    		for(int i=0; i<currentIndentation; i++) {
+        		result.append(" ");
+        	}
+        	
+        	if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) result.append("\n");
+        	
+        	if(!currentMode.empty() && currentMode.peek().equals("bulletList")) {
+        		result.append(bulletSymbol + " ");
+        	} else if (!currentMode.empty() && currentMode.peek().equals("orderedList")) {
+        		result.append(currentNumberInList + "" + orderedListDelimiter + " ");
+        		currentNumberInList++;
+        	} else if (!currentMode.empty() && currentMode.peek().equals("blockQuote")) {
+        		result.append("> ");
+        		firstBlockQuote = false;
+        	}
+        	
+        	result.append(text.getLiteral());
     	}
-    	
-    	if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) result.append("\n");
-    	
-    	if(!currentMode.empty() && currentMode.peek().equals("bulletList")) {
-    		result.append(bulletSymbol + " ");
-    	} else if (!currentMode.empty() && currentMode.peek().equals("orderedList")) {
-    		result.append(currentNumberInList + "" + orderedListDelimiter + " ");
-    		currentNumberInList++;
-    	} else if (!currentMode.empty() && currentMode.peek().equals("blockQuote")) {
-    		result.append("> ");
-    		firstBlockQuote = false;
-    	}
-    	
-    	result.append(text.getLiteral());
     	
         visitChildren(text);
     }
@@ -121,11 +194,7 @@ class PrettyPrinterVisitor extends AbstractVisitor {
     
     @Override
 	public void visit(SoftLineBreak softLineBreak) {
-    	if(currentMode.isEmpty()) {
-    		result.append(" ");
-    	} else if(!currentMode.peek().equals("blockQuote")) {
-    		result.append(" ");
-    	}
+    	result.append(" ");
     	visitChildren(softLineBreak);
 	}
     
@@ -232,7 +301,6 @@ class PrettyPrinterVisitor extends AbstractVisitor {
     
     @Override
 	public void visit(FencedCodeBlock fencedCodeBlock) {
-    	//result.append("\n");
     	codeBlockSymbol = fencedCodeBlock.getFenceChar();
     	result.append(codeBlockSymbol);
     	result.append(codeBlockSymbol);
