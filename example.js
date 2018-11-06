@@ -38,55 +38,55 @@
  */
 
 function processLineSpacing(params) {
-	return params.text + '\n';
+	return params + '\n';
 }
 
 function processHeader(params) {
 	let result = '';
-	for(let i=0; i<params.text.length; i++) {
-		result += params.text[i].toUpperCase() + ' ';
+	for(let i=0; i<params.length; i++) {
+		result += params[i].toUpperCase() + ' ';
 	}
 	return result;
 }
 
 function processText(params) {
 	let result = '';
-	for(let i=0; i<params.text.length; i++) {
-		result += params.text[i].toUpperCase();
+	for(let i=0; i<params.length; i++) {
+		result += params[i].toUpperCase();
 	}
 	return result;
 }
 
 function processBlockQuote(params) {
 	let result = '';
-	for(let i=0; i<params.text.length; i++) {
-		result += params.text[i].toLowerCase();
+	for(let i=0; i<params.length; i++) {
+		result += params[i].toLowerCase();
 	}
 	return result;
 }
 
 function processOrderedList(params) {
-	return params.text + '';
+	return params + '';
 }
 
 function processBulletList(params) {
-	return params.text + ' (Bullet item)';
+	return params + ' (Bullet item)';
 }
 
 function processEmphasis(params) {
 	let result = '';
-	for(let i=0; i<params.text.length; i++) {
-		result += params.text[i].toLowerCase();
+	for(let i=0; i<params.length; i++) {
+		result += params[i].toLowerCase();
 	}
-	return params.text + 'EMPH'; 
+	return params + 'EMPH'; 
 }
 
 function processStrongEmphasis(params) {
 	let result = '';
-	for(let i=0; i<params.text.length; i++) {
-		result += params.text[i].toLowerCase();
+	for(let i=0; i<params.length; i++) {
+		result += params[i].toLowerCase();
 	}
-	return params.text + 'STRONGEMPH'; 
+	return params + 'STRONGEMPH'; 
 }
 
 function processCode(params) {
@@ -94,11 +94,11 @@ function processCode(params) {
 }
 
 function processIndentedCodeBlock(params) {
-	return params.text;
+	return params;
 }
 
 function processFencedCodeBlock(params) {
-	return params.text;
+	return params;
 }
 
 function processThematicBreak(params) {
@@ -118,7 +118,7 @@ function processImageText(params) {
 }
 
 function processImage(params) {
-	return params.text;
+	return params;
 }
 
 
