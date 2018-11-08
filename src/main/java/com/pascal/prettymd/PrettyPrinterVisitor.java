@@ -34,25 +34,52 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	private Set<String> members;
 	private StringBuilder result = new StringBuilder();
 
-	// TODO: use line width
-	// int maxLineWidth = 200;
+	// JavaScript function names
+	private static final String PROCESS_HEADER = "processHeader";
+	private static final String PROCESS_LINE_SPACING = "processLineSpacing";
+	private static final String PROCESS_TEXT = "processText";
+	private static final String PROCESS_BLOCK_QUOTE = "processBlockQuote";
+	private static final String PROCESS_ORDERED_LIST = "processOrderedList";
+	private static final String PROCESS_BULLET_LIST = "processBulletList";
+	private static final String PROCESS_EMPHASIS = "processEmphasis";
+	private static final String PROCESS_STRONG_EMPHASIS = "processStrongEmphasis";
+	private static final String PROCESS_CODE = "processCode";
+	private static final String PROCESS_INDENTED_CODE_BLOCK = "processIndentedCodeBlock";
+	private static final String PROCESS_FENCED_CODE_BLOCK = "processFencedCodeBlock";
+	private static final String PROCESS_THEMATIC_BREAK = "processThematicBreak";
+	private static final String PROCESS_LINK_TEXT = "processLinkText";
+	private static final String PROCESS_LINK = "processLink";
+	private static final String PROCESS_IMAGE_TEXT = "processImageText";
+	private static final String PROCESS_IMAGE = "processImage";
+
+	// possible modes
+	private static final String BULLET_LIST = "bulletList";
+	private static final String ORDERED_LIST = "orderedList";
+	private static final String HEADING = "heading";
+	private static final String BLOCK_QUOTE = "blockQuote";
+	private static final String EMPHASIS = "emphasis";
+	private static final String STRONG_EMPHASIS = "strongEmphasis";
+	private static final String LINK = "link";
+	private static final String IMAGE = "image";
 
 	// variables for keeping track of current status
-	int currentIndentation = 0;
-	Stack<String> currentMode = new Stack<String>();
-	int currentNumberInList = 1;
-	int currentHeadingLevel = 0;
-	boolean firstBlockQuote = true;
-	boolean firstListItem = true;
+	private int currentIndentation = 0;
+	private Stack<String> currentMode = new Stack<String>();
+	private int currentNumberInList = 1;
+	private int currentHeadingLevel = 0;
+	private boolean firstBlockQuote = true;
+	// TODO: use line width
+	// int currentLineWidth = 0;
 
-	// default symbols
-	char bulletSymbol = '-';
-	char orderedListDelimiter = '.';
-	char codeBlockSymbol = '~';
-	String emphasisSymbol = "*";
-	String strongEmphasisSymbol = "**";
-	char codeSymbol = '`';
-	String headingSymbol = "#";
+	// default symbols /settings
+	// int maxLineWidth = 200;
+	private char bulletSymbol = '-';
+	private char orderedListDelimiter = '.';
+	private char codeBlockSymbol = '~';
+	private String emphasisSymbol = "*";
+	private String strongEmphasisSymbol = "**";
+	private char codeSymbol = '`';
+	private String headingSymbol = "#";
 
 	// custom constructor with JavaScript
 	public PrettyPrinterVisitor(String javaScript) {
@@ -65,7 +92,6 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 		Timer timer = new Timer(true);
 		final Value v;
-		// JsonObject jsonObject = new JsonObject(text, options);
 
 		timer.schedule(new TimerTask() {
 			@Override
@@ -92,8 +118,8 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 	public void printNewLines() {
 		if (currentMode.empty() || (!currentMode.empty()
-				&& (!currentMode.peek().equals("bulletList") && !currentMode.peek().equals("orderedList")))) {
-			String lines = passToJavaScript("processLineSpacing", "\n", "");
+				&& (!currentMode.peek().equals(BULLET_LIST) && !currentMode.peek().equals(ORDERED_LIST)))) {
+			String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n", "");
 			result.append(lines);
 		}
 	}
@@ -115,7 +141,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(Heading heading) {
 		currentHeadingLevel = heading.getLevel();
-		currentMode.push("heading");
+		currentMode.push(HEADING);
 		visitChildren(heading);
 		currentMode.pop();
 		currentHeadingLevel = 0;
@@ -127,62 +153,63 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	public void visit(Text text) {
 
 		// Heading
-		if (!currentMode.empty() && currentMode.peek().equals("heading")) {
+		if (!currentMode.empty() && currentMode.peek().equals(HEADING)) {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < currentHeadingLevel; i++) {
 				sb.append(headingSymbol);
 			}
-			String modifiedString = passToJavaScript("processHeader", sb.toString() + " " + text.getLiteral(), "");
+			String modifiedString = passToJavaScript(PROCESS_HEADER, sb.toString() + " " + text.getLiteral(), "");
 			result.append(modifiedString);
 		} else {
+			// TODO: switch case
 			for (int i = 0; i < currentIndentation; i++) {
 				result.append(" ");
 			}
 			// Spacing before beginning a block quote
-			if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) {
+			if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
 				result.append("\n");
 			}
 			// Bullet List
-			if (!currentMode.empty() && currentMode.peek().equals("bulletList")) {
-				String modifiedString = passToJavaScript("processBulletList", bulletSymbol + " " + text.getLiteral(),
+			if (!currentMode.empty() && currentMode.peek().equals(BULLET_LIST)) {
+				String modifiedString = passToJavaScript(PROCESS_BULLET_LIST, bulletSymbol + " " + text.getLiteral(),
 						"");
 				result.append(modifiedString);
 			}
 			// Ordered List
-			else if (!currentMode.empty() && currentMode.peek().equals("orderedList")) {
-				String modifiedString = passToJavaScript("processOrderedList",
+			else if (!currentMode.empty() && currentMode.peek().equals(ORDERED_LIST)) {
+				String modifiedString = passToJavaScript(PROCESS_ORDERED_LIST,
 						currentNumberInList++ + "" + orderedListDelimiter + " " + text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Block Quotes
-			else if (!currentMode.empty() && currentMode.peek().equals("blockQuote")) {
+			else if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE)) {
 				firstBlockQuote = false;
-				String modifiedString = passToJavaScript("processBlockQuote", "> " + text.getLiteral(), "");
+				String modifiedString = passToJavaScript(PROCESS_BLOCK_QUOTE, "> " + text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Emphasis
-			else if (!currentMode.empty() && currentMode.peek().equals("emphasis")) {
-				String modifiedString = passToJavaScript("processEmphasis", text.getLiteral(), "");
+			else if (!currentMode.empty() && currentMode.peek().equals(EMPHASIS)) {
+				String modifiedString = passToJavaScript(PROCESS_EMPHASIS, text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Strong Emphasis
-			else if (!currentMode.empty() && currentMode.peek().equals("strongEmphasis")) {
-				String modifiedString = passToJavaScript("processStrongEmphasis", text.getLiteral(), "");
+			else if (!currentMode.empty() && currentMode.peek().equals(STRONG_EMPHASIS)) {
+				String modifiedString = passToJavaScript(PROCESS_STRONG_EMPHASIS, text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Link
-			else if (!currentMode.empty() && currentMode.peek().equals("link")) {
-				String modifiedString = passToJavaScript("processLinkText", text.getLiteral(), "");
+			else if (!currentMode.empty() && currentMode.peek().equals(LINK)) {
+				String modifiedString = passToJavaScript(PROCESS_LINK_TEXT, text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Image
-			else if (!currentMode.empty() && currentMode.peek().equals("image")) {
-				String modifiedString = passToJavaScript("processImageText", text.getLiteral(), "");
+			else if (!currentMode.empty() && currentMode.peek().equals(IMAGE)) {
+				String modifiedString = passToJavaScript(PROCESS_IMAGE_TEXT, text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 			// Normal Text
 			else {
-				String modifiedString = passToJavaScript("processText", text.getLiteral(), "");
+				String modifiedString = passToJavaScript(PROCESS_TEXT, text.getLiteral(), "");
 				result.append(modifiedString);
 			}
 		}
@@ -197,7 +224,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(SoftLineBreak softLineBreak) {
-		if (!(!currentMode.empty() && currentMode.peek().equals("blockQuote"))) {
+		if (!(!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE))) {
 			result.append(" ");
 		}
 		visitChildren(softLineBreak);
@@ -205,14 +232,13 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(Paragraph paragraph) {
-		if (!currentMode.empty() && currentMode.peek().equals("blockQuote") && !firstBlockQuote) {
+		if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
 			result.append(">");
 		}
 		visitChildren(paragraph);
 		if (currentMode.isEmpty())
 			result.append("\n");
-		if (!currentMode.empty()
-				&& (currentMode.peek().equals("bulletList") || currentMode.peek().equals("orderedList")))
+		if (!currentMode.empty() && (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST)))
 			result.append("\n");
 		printNewLines();
 	}
@@ -220,38 +246,34 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(BulletList bulletList) {
 		if (!currentMode.isEmpty()
-				&& (currentMode.peek().equals("bulletList") || currentMode.peek().equals("orderedList"))) {
+				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
 		}
 		currentIndentation += 2;
-		currentMode.push("bulletList");
+		currentMode.push(BULLET_LIST);
 		bulletSymbol = bulletList.getBulletMarker();
-		firstListItem = true;
 		visitChildren(bulletList);
-		firstListItem = false;
 		currentIndentation -= 2;
 		currentMode.pop();
-		String lines = passToJavaScript("processLineSpacing", "\n", "");
+		String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n", "");
 		result.append(lines);
 	}
 
 	@Override
 	public void visit(OrderedList orderedList) {
 		if (!currentMode.isEmpty()
-				&& (currentMode.peek().equals("bulletList") || currentMode.peek().equals("orderedList"))) {
+				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
 		}
 		currentIndentation += 2;
-		currentMode.push("orderedList");
+		currentMode.push(ORDERED_LIST);
 		currentNumberInList = orderedList.getStartNumber();
 		orderedListDelimiter = orderedList.getDelimiter();
-		firstListItem = true;
 		visitChildren(orderedList);
-		firstListItem = false;
 		currentNumberInList = 1;
 		currentIndentation -= 2;
 		currentMode.pop();
-		String lines = passToJavaScript("processLineSpacing", "\n", "");
+		String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n", "");
 		result.append(lines);
 	}
 
@@ -259,7 +281,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	public void visit(Emphasis emphasis) {
 		emphasisSymbol = emphasis.getOpeningDelimiter();
 		result.append(emphasisSymbol);
-		currentMode.push("emphasis");
+		currentMode.push(EMPHASIS);
 		visitChildren(emphasis);
 		currentMode.pop();
 		result.append(emphasisSymbol);
@@ -269,7 +291,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	public void visit(StrongEmphasis strongEmphasis) {
 		strongEmphasisSymbol = strongEmphasis.getOpeningDelimiter();
 		result.append(strongEmphasisSymbol);
-		currentMode.push("strongEmphasis");
+		currentMode.push(STRONG_EMPHASIS);
 		visitChildren(strongEmphasis);
 		currentMode.pop();
 		result.append(strongEmphasisSymbol);
@@ -282,14 +304,14 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(Code code) {
-		// visitChildren(code); not working anymore
-		String modifiedString = passToJavaScript("processCode", "`" + code.getLiteral() + "`", "");
+		// visitChildren(code); no longer working with current setup
+		String modifiedString = passToJavaScript(PROCESS_CODE, codeSymbol + code.getLiteral() + codeSymbol, "");
 		result.append(modifiedString);
 	}
 
 	@Override
 	public void visit(BlockQuote blockQuote) {
-		currentMode.push("blockQuote");
+		currentMode.push(BLOCK_QUOTE);
 		firstBlockQuote = true;
 		visitChildren(blockQuote);
 		result.append("\n");
@@ -311,7 +333,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 			}
 		}
 
-		String modifiedString = passToJavaScript("processIndentedCodeBlock", codeBlock.toString(), "");
+		String modifiedString = passToJavaScript(PROCESS_INDENTED_CODE_BLOCK, codeBlock.toString(), "");
 		result.append(modifiedString);
 		visitChildren(indentedCodeBlock);
 		printNewLines();
@@ -327,12 +349,12 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		sb.append(fencedCodeBlock.getInfo());
 		sb.append("\n");
 		sb.append(fencedCodeBlock.getLiteral());
-		// visitChildren(fencedCodeBlock); not working anymore
+		// visitChildren(fencedCodeBlock); no longer working with current setup
 		for (int i = 0; i < fencedCodeBlock.getFenceLength(); i++) {
 			sb.append(codeBlockSymbol);
 		}
 		sb.append("\n");
-		String modifiedString = passToJavaScript("processFencedCodeBlock", sb.toString(), "");
+		String modifiedString = passToJavaScript(PROCESS_FENCED_CODE_BLOCK, sb.toString(), "");
 		result.append(modifiedString);
 		printNewLines();
 	}
@@ -340,18 +362,18 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(Link link) {
 		result.append("[");
-		currentMode.push("link");
+		currentMode.push(LINK);
 		visitChildren(link); // buggy: has a child for each word, should be just 1 child
 		currentMode.pop();
 		result.append("]");
-		String modifiedString = passToJavaScript("processLink", "(" + link.getDestination() + ")", "");
+		String modifiedString = passToJavaScript(PROCESS_LINK, "(" + link.getDestination() + ")", "");
 		result.append(modifiedString);
 	}
 
 	@Override
 	public void visit(ThematicBreak thematicBreak) {
 		visitChildren(thematicBreak);
-		String modifiedString = passToJavaScript("processThematicBreak", "***\n", "");
+		String modifiedString = passToJavaScript(PROCESS_THEMATIC_BREAK, "***\n", "");
 		result.append(modifiedString);
 		printNewLines();
 	}
@@ -359,11 +381,11 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(Image image) {
 		result.append("![");
-		currentMode.push("image");
+		currentMode.push(IMAGE);
 		visitChildren(image);
 		currentMode.pop();
 		result.append("]");
-		String modifiedString = passToJavaScript("processImage",
+		String modifiedString = passToJavaScript(PROCESS_IMAGE,
 				"(" + image.getDestination() + " \"" + image.getTitle() + "\")", "");
 		result.append(modifiedString);
 	}

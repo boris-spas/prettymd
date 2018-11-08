@@ -17,10 +17,12 @@ import com.pascal.prettymd.PrettyPrinterVisitor;
 
 public class PrettyPrinterTest {
 
-	static final String RESOURCE_PATH = "src/test/resources/";
+	private static final String RESOURCE_PATH = "src/test/resources/";
+	private static final String SAMPLE = ".sample";
+	private static final String DESIRED = ".desired";
 
-	Parser parser = Parser.builder().build();
-	PrettyPrinterVisitor visitor = new PrettyPrinterVisitor("");
+	private Parser parser = Parser.builder().build();
+	private PrettyPrinterVisitor visitor = new PrettyPrinterVisitor("");
 
 	public static String loadFile(String filename) throws IOException {
 		List<String> list = new LinkedList<String>();
@@ -36,88 +38,89 @@ public class PrettyPrinterTest {
 
 	@Test
 	public void headerTest() throws IOException {
-		String sample = loadFile("atx.sample");
-		String desired = loadFile("atx.desired");
+		String filename = "atx";
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void blockTest() throws IOException {
 		String filename = "block";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void horizontalRowTest() throws IOException {
 		String filename = "hr";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void lineBreakTest() throws IOException {
 		String filename = "line-break";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void mixedTest() throws IOException {
 		String filename = "mixed";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void orderedListTest() throws IOException {
 		String filename = "ol";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void orderedInUnorderdListTest() throws IOException {
 		String filename = "ol-in-ul";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void paragraphTest() throws IOException {
 		String filename = "p";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void alternateHeaderTest() throws IOException {
 		String filename = "setext";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void alternateHeaderExtraLineTest() throws IOException {
 		String filename = "setext-extra-line";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
 	@Test
 	public void unorderedListTest() throws IOException {
 		String filename = "ul";
-		String sample = loadFile(filename + ".sample");
-		String desired = loadFile(filename + ".desired");
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
