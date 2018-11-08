@@ -35,6 +35,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	private StringBuilder result = new StringBuilder();
 
 	// JavaScript function names
+	private static final String SET_DEFAULTS = "setDefaults";
 	private static final String PROCESS_HEADER = "processHeader";
 	private static final String PROCESS_LINE_SPACING = "processLineSpacing";
 	private static final String PROCESS_TEXT = "processText";
@@ -68,11 +69,10 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	private int currentNumberInList = 1;
 	private int currentHeadingLevel = 0;
 	private boolean firstBlockQuote = true;
-	// TODO: use line width
-	// int currentLineWidth = 0;
+	private int currentLineWidth = 0; // TODO: currently not used
 
-	// default symbols /settings
-	// int maxLineWidth = 200;
+	// default symbols/settings
+	private int maxLineWidth = 200; // TODO: currently not used
 	private char bulletSymbol = '-';
 	private char orderedListDelimiter = '.';
 	private char codeBlockSymbol = '~';
@@ -85,6 +85,8 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	public PrettyPrinterVisitor(String javaScript) {
 		this.context.eval("js", javaScript);
 		this.members = this.context.getBindings("js").getMemberKeys();
+		// TODO: not working as desired
+		// context.getBindings("js").getMember(SET_DEFAULTS).execute(maxLineWidth);
 	}
 
 	// passing a string to the JavaScript function to manipulate it
