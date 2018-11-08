@@ -158,66 +158,62 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(Text text) {
 
-		// Heading
-		if (!currentMode.empty() && currentMode.peek().equals(HEADING)) {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < currentHeadingLevel; i++) {
-				sb.append(headingSymbol);
-			}
-			String modifiedString = passToJavaScript(PROCESS_HEADER, sb.toString() + " " + text.getLiteral(), "");
-			result.append(modifiedString);
-		} else {
-			// TODO: switch case
-			for (int i = 0; i < currentIndentation; i++) {
-				result.append(" ");
-			}
-			// Spacing before beginning a block quote
-			if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
-				result.append("\n");
-			}
-			// Bullet List
-			if (!currentMode.empty() && currentMode.peek().equals(BULLET_LIST)) {
-				String modifiedString = passToJavaScript(PROCESS_BULLET_LIST, bulletSymbol + " " + text.getLiteral(),
-						"");
+		// Indentation
+		for (int i = 0; i < currentIndentation; i++) {
+			result.append(" ");
+		}
+
+		if (!currentMode.empty()) {
+
+			String currenMode = currentMode.peek();
+			String modifiedString = "";
+
+			switch (currenMode) {
+			case HEADING:
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < currentHeadingLevel; i++) {
+					sb.append(headingSymbol);
+				}
+				modifiedString = passToJavaScript(PROCESS_HEADER, sb.toString() + " " + text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Ordered List
-			else if (!currentMode.empty() && currentMode.peek().equals(ORDERED_LIST)) {
-				String modifiedString = passToJavaScript(PROCESS_ORDERED_LIST,
+				break;
+			case BULLET_LIST:
+				modifiedString = passToJavaScript(PROCESS_BULLET_LIST, bulletSymbol + " " + text.getLiteral(), "");
+				result.append(modifiedString);
+				break;
+			case ORDERED_LIST:
+				modifiedString = passToJavaScript(PROCESS_ORDERED_LIST,
 						currentNumberInList++ + "" + orderedListDelimiter + " " + text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Block Quotes
-			else if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE)) {
+				break;
+			case BLOCK_QUOTE:
+				if (!firstBlockQuote) {
+					result.append("\n");
+				}
 				firstBlockQuote = false;
-				String modifiedString = passToJavaScript(PROCESS_BLOCK_QUOTE, "> " + text.getLiteral(), "");
+				modifiedString = passToJavaScript(PROCESS_BLOCK_QUOTE, "> " + text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Emphasis
-			else if (!currentMode.empty() && currentMode.peek().equals(EMPHASIS)) {
-				String modifiedString = passToJavaScript(PROCESS_EMPHASIS, text.getLiteral(), "");
+				break;
+			case EMPHASIS:
+				modifiedString = passToJavaScript(PROCESS_EMPHASIS, text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Strong Emphasis
-			else if (!currentMode.empty() && currentMode.peek().equals(STRONG_EMPHASIS)) {
-				String modifiedString = passToJavaScript(PROCESS_STRONG_EMPHASIS, text.getLiteral(), "");
+				break;
+			case STRONG_EMPHASIS:
+				modifiedString = passToJavaScript(PROCESS_STRONG_EMPHASIS, text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Link
-			else if (!currentMode.empty() && currentMode.peek().equals(LINK)) {
-				String modifiedString = passToJavaScript(PROCESS_LINK_TEXT, text.getLiteral(), "");
+				break;
+			case LINK:
+				modifiedString = passToJavaScript(PROCESS_LINK_TEXT, text.getLiteral(), "");
 				result.append(modifiedString);
-			}
-			// Image
-			else if (!currentMode.empty() && currentMode.peek().equals(IMAGE)) {
-				String modifiedString = passToJavaScript(PROCESS_IMAGE_TEXT, text.getLiteral(), "");
+				break;
+			case IMAGE:
+				modifiedString = passToJavaScript(PROCESS_IMAGE_TEXT, text.getLiteral(), "");
 				result.append(modifiedString);
+				break;
 			}
-			// Normal Text
-			else {
-				String modifiedString = passToJavaScript(PROCESS_TEXT, text.getLiteral(), "");
-				result.append(modifiedString);
-			}
+		} else {
+			String modifiedString = passToJavaScript(PROCESS_TEXT, text.getLiteral(), "");
+			result.append(modifiedString);
 		}
 		visitChildren(text);
 	}
@@ -372,7 +368,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	public void visit(Link link) {
 		result.append("[");
 		currentMode.push(LINK);
-		visitChildren(link); // buggy: has a child for each word, should be just 1 child
+		visitChildren(link); // buggy: has a child for each word, should be just 1 child?
 		currentMode.pop();
 		result.append("]");
 		String modifiedString = passToJavaScript(PROCESS_LINK, "(" + link.getDestination() + ")", "");

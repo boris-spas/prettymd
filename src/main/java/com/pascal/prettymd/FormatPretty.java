@@ -16,15 +16,17 @@ public class FormatPretty {
 		String rawMarkdownText = "";
 		String javaScript = "";
 
-		// TODO: switch case
-		if (args.length == 0) {
+		switch (args.length) {
+		case 0:
 			throw new java.lang.RuntimeException("ERROR: please provide at least a .md file as argument");
-		} else if (args.length == 1) {
+		case 1:
 			rawMarkdownText = readFromFile(args[0]);
-		} else if (args.length == 2) {
+			break;
+		case 2:
 			rawMarkdownText = readFromFile(args[0]);
 			javaScript = readFromFile(args[1]);
-		} else {
+			break;
+		default:
 			throw new java.lang.RuntimeException("ERROR: please provide maximal 2 arguments (.md file and .js file)");
 		}
 
