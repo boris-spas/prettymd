@@ -102,13 +102,16 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 					context.close(true);
 				}
 			}, 5000);
-			if (!members.contains(type))
+			if (!members.contains(type)) {
 				return text;
-			if (!context.getBindings("js").getMember(type).canExecute())
+			}
+			if (!context.getBindings("js").getMember(type).canExecute()) {
 				return text;
+			}
 			v = context.getBindings("js").getMember(type).execute(text);
-			if (!v.isString())
+			if (!v.isString()) {
 				return text;
+			}
 			assert false;
 			return v.asString();
 		} catch (PolyglotException e) {
@@ -239,10 +242,13 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 			result.append(">");
 		}
 		visitChildren(paragraph);
-		if (currentMode.isEmpty())
+		if (currentMode.isEmpty()) {
 			result.append("\n");
-		if (!currentMode.empty() && (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST)))
+		}
+		if (!currentMode.empty()
+				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
+		}
 		printNewLines();
 	}
 
