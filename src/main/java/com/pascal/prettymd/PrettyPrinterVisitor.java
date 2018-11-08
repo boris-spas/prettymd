@@ -95,14 +95,13 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		Timer timer = new Timer(true);
 		final Value v;
 
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				context.close(true);
-			}
-		}, 5000);
-
 		try {
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					context.close(true);
+				}
+			}, 5000);
 			if (!members.contains(type))
 				return text;
 			if (!context.getBindings("js").getMember(type).canExecute())
@@ -115,6 +114,8 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		} catch (PolyglotException e) {
 			assert e.isCancelled();
 			return text;
+		} finally {
+			timer.cancel();
 		}
 	}
 
