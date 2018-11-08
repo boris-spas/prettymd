@@ -18,6 +18,7 @@
  *      ## FUNCTION NAMES: ###
  * 		######################
  *      
+ *		setDefault:					set default symbols and settings
  *      processLineSpacing:			modify empty space lines
  *      processHeader: 				modify the header
  *      processText:   				modify normal text
@@ -36,6 +37,11 @@
  *      processImage:				modify the image link
  *      
  */
+ 
+function setDefaults(params) {
+ 	console.log(params);
+ 	params = '@';
+}
 
 function processLineSpacing(params) {
 	return params + '\n';
