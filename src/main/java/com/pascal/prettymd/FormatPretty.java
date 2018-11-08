@@ -16,10 +16,10 @@ public class FormatPretty {
 		String rawMarkdownText = "";
 		String javaScript = "";
 
+		// TODO: switch case
 		if (args.length == 0) {
 			throw new java.lang.RuntimeException("ERROR: please provide at least a .md file as argument");
 		} else if (args.length == 1) {
-			System.out.println("INFO: you can provide a JavaScript file as a second argument...\n");
 			rawMarkdownText = readFromFile(args[0]);
 		} else if (args.length == 2) {
 			rawMarkdownText = readFromFile(args[0]);
