@@ -10,6 +10,10 @@ public class MyProxyObject implements ProxyObject {
 
 	Map<String, Value> members = new HashMap<String, Value>();
 
+	public int getMemberAsInt(String key) {
+		return members.get(key).asInt();
+	}
+
 	@Override
 	public Object getMember(String key) {
 		return members.get(key);

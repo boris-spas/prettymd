@@ -80,7 +80,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	private int currentNumberInList = 1;
 	private int currentHeadingLevel = 0;
 	private boolean firstBlockQuote = true;
-	private int currentLineWidth = 0; // TODO: currently not used
+	private int currentLineWidth = 0;
 
 	MyProxyObject proxyObj = new MyProxyObject();
 	Value blabla = null;
@@ -148,6 +148,33 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 				&& (!currentMode.peek().equals(BULLET_LIST) && !currentMode.peek().equals(ORDERED_LIST)))) {
 			String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n");
 			result.append(lines);
+			currentLineWidth = 0;
+		}
+	}
+
+	public void appendToResult(String str) {
+		if ((currentLineWidth + str.length()) > proxyObj.getMemberAsInt(MAX_LINE_WIDTH)) {
+			int offset = 0;
+			for (int i = proxyObj.getMemberAsInt(MAX_LINE_WIDTH) - 1 - currentLineWidth; i >= 0; i--) {
+				char c = str.charAt(i);
+				if (c == ' ') {
+					break;
+				} else {
+					offset++;
+				}
+			}
+			result.append(str.substring(0, proxyObj.getMemberAsInt(MAX_LINE_WIDTH) - currentLineWidth - offset));
+			result.append("\n");
+			for (int i = 0; i < currentIndentation; i++) {
+				result.append(" ");
+			}
+			result.append(
+					str.substring(proxyObj.getMemberAsInt(MAX_LINE_WIDTH) - currentLineWidth - offset, str.length()));
+			currentLineWidth = str
+					.substring(proxyObj.getMemberAsInt(MAX_LINE_WIDTH) - currentLineWidth, str.length() - 1).length();
+		} else {
+			result.append(str);
+			currentLineWidth += str.length();
 		}
 	}
 
@@ -173,6 +200,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		currentMode.pop();
 		currentHeadingLevel = 0;
 		result.append("\n");
+		currentLineWidth = 0;
 		printNewLines();
 	}
 
@@ -181,7 +209,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 		// Indentation
 		for (int i = 0; i < currentIndentation; i++) {
-			result.append(" ");
+			appendToResult(" ");
 		}
 
 		if (!currentMode.empty()) {
@@ -196,47 +224,48 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 					sb.append(proxyObj.getMember(HEADING_SYMBOL));
 				}
 				modifiedString = passToJavaScript(PROCESS_HEADER, sb.toString() + " " + text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case BULLET_LIST:
 				modifiedString = passToJavaScript(PROCESS_BULLET_LIST,
 						proxyObj.getMember(BULLET_SYMBOL) + " " + text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case ORDERED_LIST:
 				modifiedString = passToJavaScript(PROCESS_ORDERED_LIST, currentNumberInList++ + ""
 						+ proxyObj.getMember(ORDERED_LIST_DELIMITER) + " " + text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case BLOCK_QUOTE:
 				if (!firstBlockQuote) {
 					result.append("\n");
+					currentLineWidth = 0;
 				}
 				firstBlockQuote = false;
 				modifiedString = passToJavaScript(PROCESS_BLOCK_QUOTE,
 						proxyObj.getMember(BLOCK_QUOTE_SYMBOL) + " " + text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case EMPHASIS:
 				modifiedString = passToJavaScript(PROCESS_EMPHASIS, text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case STRONG_EMPHASIS:
 				modifiedString = passToJavaScript(PROCESS_STRONG_EMPHASIS, text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case LINK:
 				modifiedString = passToJavaScript(PROCESS_LINK_TEXT, text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			case IMAGE:
 				modifiedString = passToJavaScript(PROCESS_IMAGE_TEXT, text.getLiteral());
-				result.append(modifiedString);
+				appendToResult(modifiedString);
 				break;
 			}
 		} else {
 			String modifiedString = passToJavaScript(PROCESS_TEXT, text.getLiteral());
-			result.append(modifiedString);
+			appendToResult(modifiedString);
 		}
 		visitChildren(text);
 	}
@@ -244,13 +273,14 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(HardLineBreak hardLineBreak) {
 		result.append("  \n");
+		currentLineWidth = 0;
 		visitChildren(hardLineBreak);
 	}
 
 	@Override
 	public void visit(SoftLineBreak softLineBreak) {
 		if (!(!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE))) {
-			result.append(" ");
+			appendToResult(" ");
 		}
 		visitChildren(softLineBreak);
 	}
@@ -258,15 +288,17 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 	@Override
 	public void visit(Paragraph paragraph) {
 		if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
-			result.append(proxyObj.getMember(BLOCK_QUOTE_SYMBOL));
+			appendToResult(proxyObj.getMember(BLOCK_QUOTE_SYMBOL).toString());
 		}
 		visitChildren(paragraph);
 		if (currentMode.isEmpty()) {
 			result.append("\n");
+			currentLineWidth = 0;
 		}
 		if (!currentMode.empty()
 				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
+			currentLineWidth = 0;
 		}
 		printNewLines();
 	}
@@ -276,6 +308,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		if (!currentMode.isEmpty()
 				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
+			currentLineWidth = 0;
 		}
 		currentIndentation += 2;
 		currentMode.push(BULLET_LIST);
@@ -284,6 +317,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		currentMode.pop();
 		String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n");
 		result.append(lines);
+		currentLineWidth = 0;
 	}
 
 	@Override
@@ -291,6 +325,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		if (!currentMode.isEmpty()
 				&& (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
 			result.append("\n");
+			currentLineWidth = 0;
 		}
 		currentIndentation += 2;
 		currentMode.push(ORDERED_LIST);
@@ -301,24 +336,25 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		currentMode.pop();
 		String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n");
 		result.append(lines);
+		currentLineWidth = 0;
 	}
 
 	@Override
 	public void visit(Emphasis emphasis) {
-		result.append(proxyObj.getMember(EMPHASIS_SYMBOL));
+		appendToResult(proxyObj.getMember(EMPHASIS_SYMBOL).toString());
 		currentMode.push(EMPHASIS);
 		visitChildren(emphasis);
 		currentMode.pop();
-		result.append(proxyObj.getMember(EMPHASIS_SYMBOL));
+		appendToResult(proxyObj.getMember(EMPHASIS_SYMBOL).toString());
 	}
 
 	@Override
 	public void visit(StrongEmphasis strongEmphasis) {
-		result.append(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL));
+		appendToResult(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL).toString());
 		currentMode.push(STRONG_EMPHASIS);
 		visitChildren(strongEmphasis);
 		currentMode.pop();
-		result.append(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL));
+		appendToResult(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL).toString());
 	}
 
 	@Override
@@ -331,7 +367,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		// visitChildren(code); no longer working with current setup
 		String modifiedString = passToJavaScript(PROCESS_CODE,
 				proxyObj.getMember(CODE_SYMBOL) + code.getLiteral() + proxyObj.getMember(CODE_SYMBOL));
-		result.append(modifiedString);
+		appendToResult(modifiedString);
 	}
 
 	@Override
@@ -340,6 +376,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		firstBlockQuote = true;
 		visitChildren(blockQuote);
 		result.append("\n");
+		currentLineWidth = 0;
 		firstBlockQuote = false;
 		currentMode.pop();
 	}
@@ -360,6 +397,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
 		String modifiedString = passToJavaScript(PROCESS_INDENTED_CODE_BLOCK, codeBlock.toString());
 		result.append(modifiedString);
+		// appendToResult(modifiedString); // TODO: does not work
 		visitChildren(indentedCodeBlock);
 		printNewLines();
 	}
@@ -380,38 +418,39 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 		sb.append("\n");
 		String modifiedString = passToJavaScript(PROCESS_FENCED_CODE_BLOCK, sb.toString());
 		result.append(modifiedString);
+		// appendToResult(modifiedString); // TODO: does not work
 		printNewLines();
 	}
 
 	@Override
 	public void visit(Link link) {
-		result.append("[");
+		appendToResult("[");
 		currentMode.push(LINK);
 		visitChildren(link); // buggy: has a child for each word, should be just 1 child?
 		currentMode.pop();
-		result.append("]");
+		appendToResult("]");
 		String modifiedString = passToJavaScript(PROCESS_LINK, "(" + link.getDestination() + ")");
-		result.append(modifiedString);
+		appendToResult(modifiedString);
 	}
 
 	@Override
 	public void visit(ThematicBreak thematicBreak) {
 		visitChildren(thematicBreak);
 		String modifiedString = passToJavaScript(PROCESS_THEMATIC_BREAK, "***\n");
-		result.append(modifiedString);
+		appendToResult(modifiedString);
 		printNewLines();
 	}
 
 	@Override
 	public void visit(Image image) {
-		result.append("![");
+		appendToResult("![");
 		currentMode.push(IMAGE);
 		visitChildren(image);
 		currentMode.pop();
-		result.append("]");
+		appendToResult("]");
 		String modifiedString = passToJavaScript(PROCESS_IMAGE,
 				"(" + image.getDestination() + " \"" + image.getTitle() + "\")");
-		result.append(modifiedString);
+		appendToResult(modifiedString);
 	}
 
 }
