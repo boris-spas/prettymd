@@ -2,7 +2,7 @@
 prettymd is a scriptable .md file pretty printer using GraalVM.
 
 ## About
-This project provides a pretty printer implemented in Java for the markdown language (.md files). Moreover, it also provides a JavaScript interface to customize the behaviour of the pretty printer (see [Documentation](##documentation)).
+This project provides a pretty printer implemented in Java for the markdown language (.md files). Moreover, it also provides a JavaScript interface to customize the behaviour of the pretty printer (see [Documentation](#documentation)).
 
 GraalVM is able to build a native image out of this application. This comes in handy regarding the performance. 
 
@@ -85,4 +85,4 @@ An extensive documentation of the JavaScript API can be seen at [JavaScript.md](
     ```
 
 ## Remarks
-  - This [.md file](README.md) and [JavaScirpt.md](JavaScirpt.md) were formatted using this printer
+  - This [.md file](README.md) and [JavaScript.md](JavaScript.md) were formatted using this printer
