@@ -39,9 +39,8 @@
  */
  
 function setDefaults(params) {
-    //console.log(Object.keys(params));
-    //console.log(params.headingSymbol);
-    //params.headingSymbol = '@';
+    params.headingSymbol = '@';
+    params.maxLineWidth = 50;
 }
 
 function processLineSpacing(params) {
