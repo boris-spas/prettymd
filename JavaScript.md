@@ -57,7 +57,7 @@ description: these object fiels can be directly assigned with the desired value
 
 params:
 
-```
+```js
 params = {
     maxLineWidth: 100,
     bulletSymbol: '-',
