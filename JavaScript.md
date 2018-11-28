@@ -55,7 +55,20 @@ objective: modify default heading symbol and set max line width to 50
 
 description: these object fiels can be directly assigned with the desired value
 
-params: `TODO`
+params:
+
+```
+params = {  maxLineWidth: 100,
+            bulletSymbol: '-',
+            orderedListDelimiter: '.',
+            codeBlockSymbol: '~',
+            emphasisSymbol: '*',
+            strongEmphasisSymbol: '**',
+            codeSymbol: '`',
+            headingSymbol: '#',
+            blockQuoteSymbol: '>'
+}
+```
 
 ```js
 function setDefaults(params) {
