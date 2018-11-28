@@ -32,7 +32,7 @@ The following examples use [test.md](test.md) as markdown input and [example.js]
 Export the GraalVM temporarily as `JAVA_HOME`:
 
 ```
-export JAVA_HOME=/home/pasci/Downloads/graalvm-ee-1.0.0-rc9
+export JAVA_HOME=<PATH-TO-GRAALVM>
 ```
 
 Pretty print a markdown file using Java:
