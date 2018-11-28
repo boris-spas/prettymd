@@ -2,11 +2,11 @@
 
 ## About
 
-The Java application will load a .js file and create a context out of the .js source code. All that is in this context will be later accessible from inside the Java program. There is a set of predefined function names that have to be used in order to customize the pretty printer. They are described in the section (Functions)[#functions]. There will be a description and an example for each of these functions.
+The Java application will load a .js file and create a context out of the .js source code. All that is in this context will be later accessible from inside the Java program. There is a set of predefined function names that have to be used in order to customize the pretty printer. They are described in the section [Functions](#functions). There will be a description and an example for each of these functions.
 
 ## Functions
 
-The goal of each JavaScript function is to receive a string, modify the string and return the string (there is one exception, see (setDefaults)[#setDefaults]). Mostly the parameter of the function will contain one line of markdown (except for (processIndentedCodeBlock)[#processIndentedCodeBlock] and (processFencedCodeBlock)[#processFencedCodeBlock]), e.g. a header `### Header`. For each markdown element you can provide a function and modify the string. Each function has 1 parameter, in the following this is always `params` but can be anything else.
+The goal of each JavaScript function is to receive a string, modify the string and return the string (there is one exception, see [setDefaults](#setDefaults)). Mostly the parameter of the function will contain one line of markdown (except for [processIndentedCodeBlock](#processIndentedCodeBlock) and [processFencedCodeBlock](#processFencedCodeBlock)), e.g. a header `### Header`. For each markdown element you can provide a function and modify the string. Each function has 1 parameter, in the following this is always `params` but can be anything else.
 
 ## Function list
 
