@@ -58,15 +58,16 @@ description: these object fiels can be directly assigned with the desired value
 params:
 
 ```
-params = {  maxLineWidth: 100,
-            bulletSymbol: '-',
-            orderedListDelimiter: '.',
-            codeBlockSymbol: '~',
-            emphasisSymbol: '*',
-            strongEmphasisSymbol: '**',
-            codeSymbol: '`',
-            headingSymbol: '#',
-            blockQuoteSymbol: '>'
+params = {
+    maxLineWidth: 100,
+    bulletSymbol: '-',
+    orderedListDelimiter: '.',
+    codeBlockSymbol: '~',
+    emphasisSymbol: '*',
+    strongEmphasisSymbol: '**',
+    codeSymbol: '`',
+    headingSymbol: '#',
+    blockQuoteSymbol: '>'
 }
 ```
 
