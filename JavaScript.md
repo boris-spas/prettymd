@@ -64,6 +64,8 @@ function setDefaults(params) {
 }
 ```
 
+***
+
 ### processLineSpacing
 
 ##### Description
@@ -88,6 +90,8 @@ function processLineSpacing(params) {
 ```
 
 result: `'\n\n'`
+
+***
 
 ### processHeader
 
@@ -114,6 +118,8 @@ function processHeader(params) {
 
 result: `'## HEADER'`
 
+***
+
 ### processText
 
 ##### Description
@@ -138,6 +144,8 @@ function processText(params) {
 ```
 
 result: `'this is some text.'`
+
+***
 
 ### processBlockQuote
 
@@ -164,6 +172,7 @@ function processBlockQuote(params) {
 
 result: `'> This is a block quote---END_BLOCK_QUOTE'`
 
+***
 
 ### processOrderedList
 
@@ -194,6 +203,8 @@ function processOrderedList(params) {
 
 result: `'1 .   l i s t   i t e m '`
 
+***
+
 ### processBulletList
 
 ##### Description
@@ -218,6 +229,8 @@ function processBulletList(params) {
 ```
 
 result: `'- banana (8)'`
+
+***
 
 ### processEmphasis
 
@@ -250,6 +263,8 @@ function processEmphasis(params) {
 
 result: `'...'`
 
+***
+
 ### processStrongEmphasis
 
 ##### Description
@@ -281,6 +296,8 @@ function processStrongEmphasis(params) {
 
 result: `'...'`
 
+***
+
 ### processCode
 
 ##### Description
@@ -305,6 +322,8 @@ function processCode(params) {
 ```
 
 result: `'CODE'`
+
+***
 
 ### processIndentedCodeBlock
 
@@ -338,6 +357,8 @@ function processIndentedCodeBlock(params) {
 ```
 
 result: This will return the same but it will also output `'2'` in the console
+
+***
 
 ### processFencedCodeBlock
 
@@ -375,6 +396,8 @@ function processFencedCodeBlock(params) {
 
 result: This will return the same but it will also output `'5'` in the console
 
+***
+
 ### processThematicBreak
 
 ##### Description
@@ -400,6 +423,8 @@ function processThematicBreak(params) {
 
 result: `'XXXXXXXXXX'`
 
+***
+
 ### processLinkText
 
 ##### Description
@@ -424,6 +449,8 @@ function processLinkText(params) {
 ```
 
 result: `'WARNING: Click at your own risk!'`
+
+***
 
 ### processLink
 
@@ -456,6 +483,8 @@ function processLink(params) {
 
 result: `'(https://www.unibe.ch)'`
 
+***
+
 ### processImageText
 
 ##### Description
@@ -480,6 +509,8 @@ function processImageText(params) {
 ```
 
 result: `'flower[IMG]'`
+
+***
 
 ### processImage
 
