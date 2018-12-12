@@ -124,4 +124,12 @@ public class PrettyPrinterTest {
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
+	@Test
+	public void multipleLineBreakTest() throws IOException {
+		String filename = "multiple-line-break";
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
+		assertEquals(desired, testPrettyPrint(sample));
+	}
+
 }
