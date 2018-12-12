@@ -132,4 +132,12 @@ public class PrettyPrinterTest {
 		assertEquals(desired, testPrettyPrint(sample));
 	}
 
+	@Test
+	public void elementsInListTest() throws IOException {
+		String filename = "elements-in-list";
+		String sample = loadFile(filename + SAMPLE);
+		String desired = loadFile(filename + DESIRED);
+		assertEquals(desired, testPrettyPrint(sample));
+	}
+
 }
