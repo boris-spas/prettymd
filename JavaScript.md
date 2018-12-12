@@ -2,11 +2,11 @@
 
 ## About
 
-The Java application will load a .js file and create a context out of the .js source code. All that is in this context will be later accessible from inside the Java program. There is a set of predefined function names that have to be used in order to customize the pretty printer. They are described in the section [Functions](#functions). There will be a description and an example for each of these functions.
+The Java application will load a .js file, create a context and execute the source code. The functions defined in the source code will be accessible to the Java program. There is a set of predefined function names that have to be used in order to customize the pretty printer. They are described in the section [Functions](#functions). There will be a description and an example for each of these functions.
 
 ## Functions
 
-The goal of each JavaScript function is to receive a string, modify the string and return the string (there is one exception, see [setDefaults](#setDefaults)). Mostly the parameter of the function will contain one line of markdown (except for [processIndentedCodeBlock](#processIndentedCodeBlock) and [processFencedCodeBlock](#processFencedCodeBlock)), e.g. a header `### Header`. For each markdown element you can provide a function and modify the string. Each function has 1 parameter, in the following this is always `params` but can be anything else.
+The goal of each JavaScript function is to customize a markdown element to your likings. The functions will have the original string as parameter, it can be modifed and returned. Or you could just provide and return a new string. There is one function that behaves differently, see [setDefaults](#setDefaults). The parameter of the function will contain one element of markdown, e.g. a header `### Header`. For each markdown element you can provide a function and modify the string. Each function has 1 parameter, in the following examples this is always declared as `params` but it can be anything else.
 
 ## Function list
 
@@ -350,27 +350,34 @@ This function is used to modify indented code blocks.
 
 ##### Example
 
-objective: log amount of lines
+objective: replace tab characters with 4 spaces
 
-description: count the amount of lines in the indented code block and log them
+description: find tab characters in the code block and replace them by 4 spaces
 
 params:
 
 ```
-'    # Let me re-iterate ...
-     for i in 1 .. 10 { do-something(i) }
-'
+    # Let me re-iterate ...
+    for i in 1 .. 10 {
+    	do-something(i)
+    }
 ```
 
 ```js
 function processIndentedCodeBlock(params) {
-    var count = (params.match(/\n/g) || []).length;
-    console.log(count);
-    return params;
+    var result = params.replace(/\t/g, '    ');
+    return result;
 }
 ```
 
-result: This will return the same but it will also output `'2'` in the console
+result:
+
+```
+    # Let me re-iterate ...
+    for i in 1 .. 10 {
+        do-something(i)
+    }
+```
 
 ***
 
@@ -385,16 +392,16 @@ This function is used to modify fenced code blocks.
 
 ##### Example
 
-objective: log amount of lines
+objective: replace tab characters with 4 spaces
 
-description: count the amount of lines in the fenced code block and log them
+description: find tab characters in the code block and replace them by 4 space
 
 params:
 
 ```
 ~~~
 define foobar() {
-    print "Welcome to flavor country!";
+	print "Welcome to flavor country!";
 }
 ~~~
 
@@ -402,13 +409,20 @@ define foobar() {
 
 ```js
 function processFencedCodeBlock(params) {
-    var count = (params.match(/\n/g) || []).length;
-    console.log(count);
-    return params;
+    var result = params.replace(/\t/g, '    ');
+    return result;
 }
 ```
 
-result: This will return the same but it will also output `'5'` in the console
+result:
+
+```
+~~~
+define foobar() {
+    print "Welcome to flavor country!";
+}
+~~~
+```
 
 ***
 

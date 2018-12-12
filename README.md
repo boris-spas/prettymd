@@ -4,7 +4,7 @@ prettymd is a scriptable .md file pretty printer using GraalVM.
 ## About
 This project provides a pretty printer implemented in Java for the markdown language (.md files). Moreover, it also provides a JavaScript interface to customize the behaviour of the pretty printer (see [Documentation](#documentation)).
 
-GraalVM is able to build a native image out of this application. This comes in handy regarding the performance. 
+GraalVM is able to build a native image out of this application. This comes in handy regarding the performance, since the native-image doesn't run on the JVM (Java Virtual Machine). This saves the overhead of the JVM, a big part of which is its startup time. Native image building happens with full ahead-of-time compilation. That means nothing is compiled during runtime and allows a fast start and runtime of the program.
 
 The parser and visitor pattern used, derive from the Atlassian [commonmark](https://github.com/atlassian/commonmark-java) library.
 
@@ -35,6 +35,12 @@ Export the GraalVM temporarily as `JAVA_HOME`:
 export JAVA_HOME=<PATH-TO-GRAALVM>
 ```
 
+Build maven package (Hint: this will also directly build the native image. This should take around 5 minutes.):
+
+```
+mvn package
+```
+
 Pretty print a markdown file using Java:
 
 ```
@@ -45,12 +51,6 @@ Pretty print a markdown file using Java and customize it with a script:
 
 ```
 $JAVA_HOME/bin/java -cp "target/prettymd.jar" com.pascal.prettymd.FormatPretty test.md example.js
-```
-
-Build maven package (Hint: this will also directly build the native image. This should take around 5 minutes.):
-
-```
-mvn package
 ```
 
 Pretty print a markdown file using the native image:
@@ -70,7 +70,7 @@ An extensive documentation of the JavaScript API can be seen at [JavaScript.md](
 
 
 ## Known Issues
-  - Because the pretty printer is implemented with a visitor pattern, there can be misbehaviour if the markdown file contains many nested items.
+  - Because the pretty printer is implemented with a visitor pattern, there can be misbehaviour if the markdown file contains many nested items. E.g. a bold item inside a link description inside a list inside a list and so on.
   - The Atlassian Commonmark parser loses the information if a heading is an alternative heading.
 
     ```
@@ -85,4 +85,5 @@ An extensive documentation of the JavaScript API can be seen at [JavaScript.md](
     ```
 
 ## Remarks
+  - A presentation about this project can be found at [presentation.pdf](presentation.pdf). It was held at the university of Bern in the software composition group on November 20th, 2018.
   - This [.md file](README.md) and [JavaScript.md](JavaScript.md) were formatted using this printer
