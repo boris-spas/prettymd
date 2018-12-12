@@ -86,4 +86,5 @@ An extensive documentation of the JavaScript API can be seen at [JavaScript.md](
 
 ## Remarks
   - A presentation about this project can be found at [presentation.pdf](presentation.pdf). It was held at the university of Bern in the software composition group on November 20th, 2018.
+  - Tested on GraalVM version: 1.0.0 RC9
   - This [.md file](README.md) and [JavaScript.md](JavaScript.md) were formatted using this printer
