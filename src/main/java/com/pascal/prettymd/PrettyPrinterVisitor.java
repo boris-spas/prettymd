@@ -154,14 +154,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     @Override
     public void visit(Text text) {
 
-        // Indentation
-        String indentation = "";
-        if (currentLineWidth == 0) {
-            for (int i = 0; i < currentIndentation; i++) {
-                indentation += " ";
-            }
-        }
-        appendToResult(indentation);
+        appendToResult(indentation());
 
         if (!currentMode.isEmpty()) {
 
@@ -234,6 +227,16 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
             lastElement = TEXT;
         }
         visitChildren(text);
+    }
+
+    private String indentation() {
+        StringBuilder indentation = new StringBuilder("");
+        if (currentLineWidth == 0) {
+            for (int i = 0; i < currentIndentation; i++) {
+                indentation.append(" ");
+            }
+        }
+        return indentation.toString();
     }
 
     @Override
