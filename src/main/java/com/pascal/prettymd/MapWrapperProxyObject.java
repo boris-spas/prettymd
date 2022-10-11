@@ -6,7 +6,7 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyProxyObject implements ProxyObject {
+public class MapWrapperProxyObject implements ProxyObject {
 
     Map<String, Value> members = new HashMap<>();
 

@@ -9,8 +9,6 @@ import java.io.IOException;
 
 public class FormatPretty {
 
-    // INFO: default files are test.md and example.js (as arguments)
-
     public static void main(String[] args) {
         Arguments arguments = new Arguments(args);
         Parser parser = Parser.builder().build();

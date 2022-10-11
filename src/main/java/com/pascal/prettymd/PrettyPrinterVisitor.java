@@ -13,8 +13,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     private final Context context = Context.create("js");
     private final StringBuilder result = new StringBuilder();
-
-    MyProxyObject proxyObj = new MyProxyObject();
+    private final MapWrapperProxyObject defaultValues = new MapWrapperProxyObject();
 
     // variables for keeping track of current status
     private int currentIndentation = 0;
@@ -30,8 +29,9 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
         this.context.eval("js", javaScript);
         this.context.enter();
         setDefaultSymbols();
-        if (context.getBindings("js").hasMember(SET_DEFAULTS)) {
-            context.getBindings("js").getMember(SET_DEFAULTS).executeVoid(proxyObj);
+        Value bindings = context.getBindings("js");
+        if (bindings.hasMember(SET_DEFAULTS)) {
+            bindings.getMember(SET_DEFAULTS).executeVoid(defaultValues);
         }
     }
 
@@ -51,15 +51,15 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     // default symbols/settings
     public void setDefaultSymbols() {
-        proxyObj.putMember(MAX_LINE_WIDTH, Value.asValue(100));
-        proxyObj.putMember(BULLET_SYMBOL, Value.asValue('-'));
-        proxyObj.putMember(ORDERED_LIST_DELIMITER, Value.asValue('.'));
-        proxyObj.putMember(CODE_BLOCK_SYMBOL, Value.asValue('~'));
-        proxyObj.putMember(EMPHASIS_SYMBOL, Value.asValue("*"));
-        proxyObj.putMember(STRONG_EMPHASIS_SYMBOL, Value.asValue("**"));
-        proxyObj.putMember(CODE_SYMBOL, Value.asValue('`'));
-        proxyObj.putMember(HEADING_SYMBOL, Value.asValue("#"));
-        proxyObj.putMember(BLOCK_QUOTE_SYMBOL, Value.asValue(">"));
+        defaultValues.putMember(MAX_LINE_WIDTH, Value.asValue(100));
+        defaultValues.putMember(BULLET_SYMBOL, Value.asValue('-'));
+        defaultValues.putMember(ORDERED_LIST_DELIMITER, Value.asValue('.'));
+        defaultValues.putMember(CODE_BLOCK_SYMBOL, Value.asValue('~'));
+        defaultValues.putMember(EMPHASIS_SYMBOL, Value.asValue("*"));
+        defaultValues.putMember(STRONG_EMPHASIS_SYMBOL, Value.asValue("**"));
+        defaultValues.putMember(CODE_SYMBOL, Value.asValue('`'));
+        defaultValues.putMember(HEADING_SYMBOL, Value.asValue("#"));
+        defaultValues.putMember(BLOCK_QUOTE_SYMBOL, Value.asValue(">"));
     }
 
     public void printNewLines() {
@@ -71,14 +71,14 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     }
 
     public void appendToResult(String str) {
-        if ((currentLineWidth + str.length()) > proxyObj.getMemberAsInt(MAX_LINE_WIDTH)) {
+        if ((currentLineWidth + str.length()) > defaultValues.getMemberAsInt(MAX_LINE_WIDTH)) {
 
             while (!str.equals("")) {
 
                 int iterationCounter = 1;
 
                 // is string too long
-                if ((currentLineWidth + str.length()) < proxyObj.getMemberAsInt(MAX_LINE_WIDTH)) {
+                if ((currentLineWidth + str.length()) < defaultValues.getMemberAsInt(MAX_LINE_WIDTH)) {
                     for (int i = 0; i < currentIndentation; i++) {
                         result.append(" ");
                     }
@@ -89,10 +89,10 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
                 int offset = 0;
                 int index = 0;
-                if ((currentLineWidth + str.length()) < proxyObj.getMemberAsInt(MAX_LINE_WIDTH)) {
+                if ((currentLineWidth + str.length()) < defaultValues.getMemberAsInt(MAX_LINE_WIDTH)) {
                     index = str.length() - 1;
                 } else {
-                    index = proxyObj.getMemberAsInt(MAX_LINE_WIDTH) - 1 - currentLineWidth;
+                    index = defaultValues.getMemberAsInt(MAX_LINE_WIDTH) - 1 - currentLineWidth;
                 }
 
                 // where to make the new line
@@ -172,7 +172,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
                 case HEADING:
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < currentHeadingLevel; i++) {
-                        sb.append(proxyObj.getMember(HEADING_SYMBOL));
+                        sb.append(defaultValues.getMember(HEADING_SYMBOL));
                     }
                     modifiedString = passToJavaScript(PROCESS_HEADER, sb + " " + text.getLiteral());
                     appendToResult(modifiedString);
@@ -184,7 +184,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
                         modifiedString = passToJavaScript(PROCESS_BULLET_LIST, text.getLiteral());
                     } else {
                         modifiedString = passToJavaScript(PROCESS_BULLET_LIST,
-                                proxyObj.getMember(BULLET_SYMBOL) + " " + text.getLiteral());
+                                defaultValues.getMember(BULLET_SYMBOL) + " " + text.getLiteral());
                     }
                     appendToResult(modifiedString);
                     lastElement = BULLET_ITEM;
@@ -196,7 +196,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
                         modifiedString = passToJavaScript(PROCESS_ORDERED_LIST, text.getLiteral());
                     } else {
                         modifiedString = passToJavaScript(PROCESS_ORDERED_LIST, currentNumberInList++ + ""
-                                + proxyObj.getMember(ORDERED_LIST_DELIMITER) + " " + text.getLiteral());
+                                + defaultValues.getMember(ORDERED_LIST_DELIMITER) + " " + text.getLiteral());
                     }
                     appendToResult(modifiedString);
                     lastElement = NUMBERED_ITEM;
@@ -208,7 +208,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
                     }
                     firstBlockQuote = false;
                     modifiedString = passToJavaScript(PROCESS_BLOCK_QUOTE,
-                            proxyObj.getMember(BLOCK_QUOTE_SYMBOL) + " " + text.getLiteral());
+                            defaultValues.getMember(BLOCK_QUOTE_SYMBOL) + " " + text.getLiteral());
                     appendToResult(modifiedString);
                     break;
                 case EMPHASIS:
@@ -254,7 +254,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     @Override
     public void visit(Paragraph paragraph) {
         if (!currentMode.isEmpty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
-            appendToResult(proxyObj.getMember(BLOCK_QUOTE_SYMBOL).toString());
+            appendToResult(defaultValues.getMember(BLOCK_QUOTE_SYMBOL).toString());
         }
         visitChildren(paragraph);
         if (currentMode.isEmpty()) {
@@ -309,21 +309,21 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     @Override
     public void visit(Emphasis emphasis) {
-        appendToResult(proxyObj.getMember(EMPHASIS_SYMBOL).toString());
+        appendToResult(defaultValues.getMember(EMPHASIS_SYMBOL).toString());
         currentMode.push(EMPHASIS);
         visitChildren(emphasis);
         currentMode.pop();
-        appendToResult(proxyObj.getMember(EMPHASIS_SYMBOL).toString());
+        appendToResult(defaultValues.getMember(EMPHASIS_SYMBOL).toString());
         lastElement = EMPHASIS;
     }
 
     @Override
     public void visit(StrongEmphasis strongEmphasis) {
-        appendToResult(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL).toString());
+        appendToResult(defaultValues.getMember(STRONG_EMPHASIS_SYMBOL).toString());
         currentMode.push(STRONG_EMPHASIS);
         visitChildren(strongEmphasis);
         currentMode.pop();
-        appendToResult(proxyObj.getMember(STRONG_EMPHASIS_SYMBOL).toString());
+        appendToResult(defaultValues.getMember(STRONG_EMPHASIS_SYMBOL).toString());
         lastElement = STRONG_EMPHASIS;
     }
 
@@ -335,7 +335,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     @Override
     public void visit(Code code) {
         String modifiedString = passToJavaScript(PROCESS_CODE,
-                proxyObj.getMember(CODE_SYMBOL) + code.getLiteral() + proxyObj.getMember(CODE_SYMBOL));
+                defaultValues.getMember(CODE_SYMBOL) + code.getLiteral() + defaultValues.getMember(CODE_SYMBOL));
         appendToResult(modifiedString);
         lastElement = CODE;
     }
@@ -376,13 +376,13 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     public void visit(FencedCodeBlock fencedCodeBlock) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < fencedCodeBlock.getFenceLength(); i++) {
-            sb.append(proxyObj.getMember(CODE_BLOCK_SYMBOL));
+            sb.append(defaultValues.getMember(CODE_BLOCK_SYMBOL));
         }
         sb.append(fencedCodeBlock.getInfo());
         sb.append("\n");
         sb.append(fencedCodeBlock.getLiteral());
         for (int i = 0; i < fencedCodeBlock.getFenceLength(); i++) {
-            sb.append(proxyObj.getMember(CODE_BLOCK_SYMBOL));
+            sb.append(defaultValues.getMember(CODE_BLOCK_SYMBOL));
         }
         sb.append("\n");
         String modifiedString = passToJavaScript(PROCESS_FENCED_CODE_BLOCK, sb.toString());
