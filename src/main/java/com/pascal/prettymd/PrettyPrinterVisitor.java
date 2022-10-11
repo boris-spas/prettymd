@@ -4,7 +4,8 @@ import org.commonmark.node.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import static com.pascal.prettymd.Constants.*;
 
@@ -17,7 +18,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     // variables for keeping track of current status
     private int currentIndentation = 0;
-    private Stack<String> currentMode = new Stack<String>();
+    private final Deque<String> currentMode = new ArrayDeque<>();
     private int currentNumberInList = 1;
     private int currentHeadingLevel = 0;
     private boolean firstBlockQuote = true;
@@ -62,8 +63,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
     }
 
     public void printNewLines() {
-        if (currentMode.empty() || (!currentMode.empty()
-                && (!currentMode.peek().equals(BULLET_LIST) && !currentMode.peek().equals(ORDERED_LIST)))) {
+        if (currentMode.isEmpty() || (!currentMode.peek().equals(BULLET_LIST) && !currentMode.peek().equals(ORDERED_LIST))) {
             String lines = passToJavaScript(PROCESS_LINE_SPACING, "\n");
             result.append(lines);
             currentLineWidth = 0;
@@ -163,7 +163,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
         }
         appendToResult(indentation);
 
-        if (!currentMode.empty()) {
+        if (!currentMode.isEmpty()) {
 
             String mode = currentMode.peek();
             String modifiedString = "";
@@ -245,7 +245,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     @Override
     public void visit(SoftLineBreak softLineBreak) {
-        if (!(!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE))) {
+        if (!(!currentMode.isEmpty() && currentMode.peek().equals(BLOCK_QUOTE))) {
             appendToResult(" ");
         }
         visitChildren(softLineBreak);
@@ -253,7 +253,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
 
     @Override
     public void visit(Paragraph paragraph) {
-        if (!currentMode.empty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
+        if (!currentMode.isEmpty() && currentMode.peek().equals(BLOCK_QUOTE) && !firstBlockQuote) {
             appendToResult(proxyObj.getMember(BLOCK_QUOTE_SYMBOL).toString());
         }
         visitChildren(paragraph);
@@ -261,7 +261,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor {
             result.append("\n");
             currentLineWidth = 0;
         }
-        if (!currentMode.empty()
+        if (!currentMode.isEmpty()
                 && (currentMode.peek().equals(BULLET_LIST) || currentMode.peek().equals(ORDERED_LIST))) {
             result.append("\n");
             currentLineWidth = 0;

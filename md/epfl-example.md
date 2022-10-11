@@ -9,7 +9,7 @@ Looks like this line is really long - Lorem ipsum dolor sit amet, consetetur sad
 
 
 
-Paragraphs are separated by ONE blank line.
+Paragraphs are separated by TWO blank lines.
 
 Every.Period.Should.Be.Followed.By.A.Space.
 

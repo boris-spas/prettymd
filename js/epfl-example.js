@@ -1,10 +1,10 @@
 function setDefaults(params) {
-    params.headingSymbol = '@';
-    params.maxLineWidth = 50;
+    params.headingSymbol = '+';
+    params.maxLineWidth = 20;
 }
 
 function processLineSpacing(params) {
-    return '\n\n\n';
+    return '\n';
 }
 
 function processHeader(params) {
